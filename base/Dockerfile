@@ -47,14 +47,14 @@ RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN apt-get update && apt-get install -y nodejs
 
 # Heroku CLI
-RUN npm install -g heroku
+# RUN npm install -g heroku
 
-RUN groupadd -g 1000 $GROUP
-RUN useradd -g $GROUP -G sudo -m -s /bin/bash $USER
+# RUN groupadd -g 1000 $GROUP
+# RUN useradd -g $GROUP -G sudo -m -s /bin/bash $USER
 
-RUN mkdir /var/run/sshd
-RUN echo "${USER}:${PASS}" | chpasswd
-RUN echo "root:${PASS}" | chpasswd
+# RUN mkdir /var/run/sshd
+# RUN echo "${USER}:${PASS}" | chpasswd
+# RUN echo "root:${PASS}" | chpasswd
 
 # SSH settings. Otherwise user is kicked off after login
 RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
