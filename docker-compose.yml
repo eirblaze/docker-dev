@@ -2,7 +2,7 @@ version: "3.4"
 services:
   base:
     build: base
-    container_name: base
+    container_name: "${PRODUCTION_NAME}_base"
     command: /usr/sbin/sshd -D
     ports:
       - "49944:22"
@@ -20,7 +20,7 @@ services:
 
   nginx:
     image: nginx:1.13.5-alpine
-    container_name: nginx
+    container_name: "${PRODUCTION_NAME}_nginx"
     ports:
       - "80:80"
     depends_on:
@@ -28,16 +28,18 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./data/html:/var/www/html
+      env_file:
+        - ./.env
 
   php:
     image: php:7.1.9-fpm
-    container_name: php
+    container_name: "${PRODUCTION_NAME}_php"
     volumes:
       - ./data/html:/var/www/html
 
   node:
     build: ./node
-    container_name: node
+    container_name: "${PRODUCTION_NAME}_node"
     volumes:
       - ./data/node/app.js:/src/app.js
       - ./data/node/views:/src/views
@@ -55,7 +57,7 @@ services:
 
   postgres:
     build: ./postgres
-    container_name: pg
+    container_name: "${PRODUCTION_NAME}_db"
     environment:
       POSTGRES_DB: mydb
       POSTGRES_USER: dbuser
@@ -74,6 +76,8 @@ volumes:
 
 networks:
   mynet:
+    driver_opts:
+      com.docker.network.enable_ipv6: "true"
     ipam:
       config:
         - subnet: 172.18.0.0/16
