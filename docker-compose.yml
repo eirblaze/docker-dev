@@ -16,7 +16,7 @@ services:
         target: /data
     networks:
       mynet:
-        ipv4_address: 172.18.0.10
+        # ipv4_address: 172.18.0.10
 
   nginx:
     image: nginx:1.13.5-alpine
@@ -28,8 +28,8 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./data/html:/var/www/html
-      env_file:
-        - ./.env
+    env_file:
+      - ./.env
 
   php:
     image: php:7.1.9-fpm
@@ -48,7 +48,7 @@ services:
       - "3000:3000"
     networks:
       mynet:
-        ipv4_address: 172.18.0.4
+        # ipv4_address: 172.18.0.4
     depends_on:
       - postgres
     entrypoint:
@@ -68,7 +68,7 @@ services:
       - pgdb:/var/lib/postgresql/data
     networks:
       mynet:
-        ipv4_address: 172.18.0.2
+        # ipv4_address: 172.18.0.2
 
 volumes:
   pgdb:
@@ -78,6 +78,6 @@ networks:
   mynet:
     driver_opts:
       com.docker.network.enable_ipv6: "true"
-    ipam:
-      config:
-        - subnet: 172.18.0.0/16
+    # ipam:
+    #   config:
+    #     - subnet: 172.18.0.0/16
