@@ -1,0 +1,125 @@
+FROM python:3.6
+ARG USER=user
+ARG GROUP=developer
+ARG PASS=password
+
+ENV DEBIAN_FRONTEND noninteractive
+ENV DEBCONF_NOWARNINGS yes
+
+# Common
+RUN apt-get update && apt-get install -y \
+  # apt-transport-https \
+  # libasound2-dev \
+  # bash-completion \
+  # build-essential \
+  # bzip2 \
+  # cmake \
+  # curl \
+  # gcc \
+  # g++ \
+  # git \
+  # less \
+  # libatlas-base-dev \
+  # libgl1-mesa-dev \
+  # locales \
+  # locales-all \
+  # make \
+  # man \
+  # manpages-dev \
+  # mosquitto-clients \
+  # net-tools \
+  openssh-server \
+  # openssh-client \
+  # p7zip \
+  # postgresql-client \
+  # software-properties-common \
+  # sudo \
+  # unzip \
+  # vim \
+  # vim-gnome \
+  # wget \
+  # xorg-dev \
+  # zlib1g-dev \
+  # zsh \
+  ;
+
+# SSH settings. Otherwise user is kicked off after login
+RUN sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+RUN sed -e 's@#Port 22@Port 22@' -e 's@#AddressFamily any@AddressFamily inet@' -i /etc/ssh/sshd_config
+
+# OpenCV and Tensorflow
+# RUN ln -s /usr/include/libv4l1-videodev.h /usr/include/linux/videodev.h
+
+# RUN mkdir /tmp_cv
+# RUN cd /tmp_cv && wget https://github.com/Itseez/opencv/archive/3.1.0.zip && unzip 3.1.0.zip
+# RUN cd /tmp_cv/opencv-3.1.0 && cmake CMakeLists.txt -DWITH_TBB=ON \
+#                                                     -DINSTALL_CREATE_DISTRIB=ON \
+#                                                     -DWITH_FFMPEG=OFF \
+#                                                     -DWITH_IPP=OFF \
+#                                                     -DCMAKE_INSTALL_PREFIX=/usr/local
+# RUN cd /tmp_cv/opencv-3.1.0 && make -j2 && make install
+# # Note: The latest tornado(6.0.1) caused a problem not to connect to jupyter kernel; tornado==5.1.1 is a W/A.
+# RUN pip3 install numpy tensorflow opencv-python Pillow scipy matplotlib pandas keras jupyter tornado==5.1.1
+
+# Go 1.11
+# RUN mkdir /tmp_go
+# RUN apt-get update && apt-get -y upgrade && \
+#   cd /tmp_go && \
+#   wget https://dl.google.com/go/go1.11.4.linux-amd64.tar.gz && \
+#   tar xvf go1.11.4.linux-amd64.tar.gz && \
+#   mv go /usr/local
+
+# Locale
+ARG LANGVAL=en_US.utf8
+RUN echo "export LANG=$LANGVAL" >> /etc/profile
+RUN echo "export LANGUAGE=$LANGVAL" >> /etc/profile
+RUN echo "export LC_CTYPE=$LANGVAL" >> /etc/profile
+RUN echo "export LC_ALL=$LANGVAL" >> /etc/profile
+ENV LANG     $LANGVAL
+ENV LANGUAGE $LANGVAL
+ENV LC_CTYPE $LANGVAL
+ENV LC_ALL   $LANGVAL
+RUN echo "$LANGVAL UTF-8" > /etc/locale.gen && \
+    locale-gen && \
+    update-locale LANG=$LANGVAL
+
+RUN cp /usr/share/zoneinfo/Japan /etc/localtime
+
+#### User ####
+USER $USER
+WORKDIR /home/$USER
+
+# Settings
+RUN echo 'alias ls="ls -a --color=auto --show-control-chars --time-style=long-iso -FH"' >> /home/$USER/.profile
+RUN echo 'alias ll="ls -a -lA"' >> /home/$USER/.profile
+RUN echo 'alias h=history' >> /home/$USER/.profile
+
+# vim
+# RUN echo 'alias vi=vim' >> /home/$USER/.profile
+
+# OpenCV and Tensorflow
+# RUN echo 'alias jupyter_notebook="jupyter notebook --ip=0.0.0.0 --port=8080"' >> /home/$USER/.profile
+
+# Go 1.11
+# RUN echo 'export GOROOT="/usr/local/go"' >> /home/$USER/.profile
+# RUN echo 'export GOPATH="/work/go"' >> /home/$USER/.profile
+# RUN echo 'export PATH="/work/bin:$GOPATH/bin:$GOROOT/bin:$PATH"' >> /home/$USER/.profile
+
+RUN echo 'PS1="\$ "' >> /home/$USER/.bashrc
+RUN touch /home/$USER/.Xauthority && chmod 600 /home/$USER/.Xauthority
+
+USER root
+
+#ADD .netrc /home/$USER
+#ADD .gitconfig /home/$USER
+#RUN chown $USER:$GROUP /home/$USER/.netrc /home/$USER/.gitconfig
+#RUN chmod 644 /home/$USER/.netrc /home/$USER/.gitconfig
+
+# vim
+# ADD .vimrc /home/$USER/.vimrc
+# ADD .gvimrc /home/$USER/.gvimrc
+# RUN chown -R $USER:$GROUP /home/$USER/.*vim*
+# RUN chmod -R 644 /home/$USER/.*vim*
+
+EXPOSE 22
+EXPOSE 8080
