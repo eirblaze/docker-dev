@@ -70,7 +70,8 @@ RUN sed -e 's@#Port 22@Port 22@' -e 's@#AddressFamily any@AddressFamily inet@' -
 #   mv go /usr/local
 
 # Locale
-ARG LANGVAL=en_US.utf8
+RUN apt-get install -y locales
+ARG LANGVAL=ja_JP.UTF-8
 RUN echo "export LANG=$LANGVAL" >> /etc/profile
 RUN echo "export LANGUAGE=$LANGVAL" >> /etc/profile
 RUN echo "export LC_CTYPE=$LANGVAL" >> /etc/profile
@@ -86,13 +87,21 @@ RUN echo "$LANGVAL UTF-8" > /etc/locale.gen && \
 RUN cp /usr/share/zoneinfo/Japan /etc/localtime
 
 #### User ####
-USER $USER
+
+# 一般ユーザーアカウントを追加
+RUN useradd -m ${USER}
+# 一般ユーザーにsudo権限を付与
+RUN gpasswd -a ${USER} sudo
+# 一般ユーザーのパスワード設定
+RUN echo "${USER}:${PASS}" | chpasswd
+
 WORKDIR /home/$USER
+USER $USER
 
 # Settings
-RUN echo 'alias ls="ls -a --color=auto --show-control-chars --time-style=long-iso -FH"' >> /home/$USER/.profile
-RUN echo 'alias ll="ls -a -lA"' >> /home/$USER/.profile
-RUN echo 'alias h=history' >> /home/$USER/.profile
+# RUN echo 'alias ls="ls -a --color=auto --show-control-chars --time-style=long-iso -FH"' >> /home/$USER/.profile
+# RUN echo 'alias ll="ls -a -lA"' >> /home/$USER/.profile
+# RUN echo 'alias h=history' >> /home/$USER/.profile
 
 # vim
 # RUN echo 'alias vi=vim' >> /home/$USER/.profile
@@ -120,6 +129,10 @@ USER root
 # ADD .gvimrc /home/$USER/.gvimrc
 # RUN chown -R $USER:$GROUP /home/$USER/.*vim*
 # RUN chmod -R 644 /home/$USER/.*vim*
+
+RUN service ssh start
+
+RUN pip install numpy scipy matplotlib pandas
 
 EXPOSE 22
 EXPOSE 8080
